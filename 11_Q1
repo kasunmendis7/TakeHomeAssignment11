@@ -1,0 +1,141 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+struct Profile{
+    char name[50];
+    int age;
+    int followers;
+    struct Profile* right;
+    struct Profile* left;
+    int height;
+};
+
+int height(struct Profile *N);
+int maximum(int a, int b);
+struct Profile *newProfile(char name[50], int age, int followers);
+struct Profile *rightRotate(struct Profile *y);
+struct Profile *leftRotate(struct Profile *x);
+int calculateBalanceFactor(struct Profile *N);
+struct Profile *insert(struct Profile *profile, char name[50], int age, int followers);
+void reversedInOrder(struct Profile *root);
+
+int main(){
+    struct Profile *root = NULL;
+    root = insert(root, "Alice", 25, 1000);
+    root = insert(root, "Bob", 30, 500);
+    root = insert(root, "Charlie", 22, 750);
+    root = insert(root, "David", 28, 800);
+    root = insert(root, "Eve", 29, 1200);
+
+    printf("\n---------Profiles---------\n");
+    reversedInOrder(root);
+
+    return 0;
+}
+
+//function to calculate the height of the tree
+int height(struct Profile *N){
+    if(N == NULL){
+        return 0;
+    }
+    return N->height;
+}
+
+//function to get the maximum value out of two integers
+int maximum(int a, int b){
+    if(a>b){
+        return a;
+    }else{
+        return b;
+    }
+}
+
+//function to create a new profile
+struct Profile *newProfile(char name[50], int age, int followers){
+    struct Profile* profile=(struct Profile*)malloc(sizeof(struct Profile));
+    strcpy(profile->name, name);
+    profile->age = age;
+    profile->followers = followers;
+    profile->left=NULL;
+    profile->right=NULL;
+    profile->height=1;
+    return (profile);
+}
+
+//function to perform right rotation
+struct Profile *rightRotate(struct Profile *y){
+    struct Profile *x=y->left;
+    struct Profile *z= x->right;
+    //Performing rotation
+    x->right=y;
+    y->left=z;
+    //update the height
+    y->height=maximum(height(y->left), height(y->right))+1;
+    x->height=maximum(height(x->left), height(x->right))+1;
+    return x;
+}
+
+//function to perform left rotation
+struct Profile *leftRotate(struct Profile *x){
+    struct Profile *y=x->right;
+    struct Profile *z=y->left;
+    //Performing rotation
+    y->left=x;
+    x->right=z;
+    //Update the heights
+    x->height=maximum(height(x->left), height(x->right))+1;
+    y->height=maximum(height(y->left),height(y->right))+1;
+    return y;
+}
+
+//function to find the balance factor
+int calculateBalanceFactor(struct Profile *N){
+    if(N==NULL){
+        return 0;
+    }
+    return height(N->left)-height(N->right);
+}
+
+//function to insert data into the tree
+struct Profile *insert(struct Profile *profile, char name[50], int age, int followers){
+    if(profile==NULL){
+        return (newProfile(name, age, followers));
+    }
+    if(profile->followers > followers){
+        profile->left=insert(profile->left, name, age, followers);
+    }else if(profile->followers < followers){
+        profile->right=insert(profile->right, name, age, followers);
+    }else{
+        return profile;
+    }
+    profile->height=1+maximum(height(profile->left), height(profile->right));
+
+    int balanceFactor = calculateBalanceFactor(profile);
+
+    if(balanceFactor>1 && profile->left->followers>followers){
+        return rightRotate(profile);
+    }
+    if(balanceFactor<-1 && profile->right->followers<followers){
+        return leftRotate(profile);
+    }
+    if(balanceFactor>1 && profile->left->followers<followers){
+        profile->left=leftRotate(profile->left);
+        return rightRotate(profile);
+    }
+    if(balanceFactor<-1 && profile->right->followers>followers){
+        profile->right=rightRotate(profile->right);
+        return leftRotate(profile);
+    }
+    return profile;
+}
+
+//function to print profiles in descending order according to their followers
+void reversedInOrder(struct Profile *root){
+    if(root!=NULL){
+        reversedInOrder(root->right);
+        printf("\n");
+        printf("Prifle Name: %s\nAge: %d\nNumber of followers: %d\n", root->name, root->age, root->followers);
+        reversedInOrder(root->left);
+    }
+}
